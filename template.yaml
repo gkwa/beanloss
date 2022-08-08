@@ -1,80 +1,67 @@
 AWSTemplateFormatVersion: "2010-09-09"
-
 Description: AWS CloudFormation workshop - Resources (uksb-1q9p31idr).
-
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
-      - Label:
-          default: Amazon EC2 Configuration
-        Parameters:
-          - InstanceType
+    - Label:
+        default: Amazon EC2 Configuration
+      Parameters:
+      - InstanceType
     ParameterLabels:
       InstanceType:
         default: Type of EC2 Instance
-
-Resources:
- Instance:
-    Type: 'AWS::EC2::Instance'
-    Properties:
-      ImageId: !Ref LatestAmiId
-
 Parameters:
-
   VpcId:
     Type: AWS::EC2::VPC::Id
     Description: VpcId of your existing Virtual Private Cloud (VPC)
     ConstraintDescription: must be the VPC Id of an existing Virtual Private Cloud.
-
-  SubnetId1:
-    Type: AWS::EC2::Subnet
-    Description: SubnetId of your existing VPC Subnet
-    ConstraintDescription: must be the Subet Id of an existing Virtual Private Cloud Subnet.
-
+  SubnetId:
+    Description: SubnetId of existing subnet for the primary network in your VPC.
+    Type: AWS::EC2::Subnet::Id
+  ListOfSecurityGroupIDs:
+    Description: Array of security group ids
+    Type: List<AWS::EC2::SecurityGroup::Id>
+  RoleArnValue:
+    Type: String
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instances
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
   LatestAmiId:
-    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
-    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
-
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
   InstanceType:
     Description: Enter t2.micro or t2.small. Default is t2.micro.
     Type: String
     AllowedValues:
-      - t2.micro
-      - t2.small
+    - t2.micro
+    - t2.small
     Default: t2.micro
-
-
 Resources:
-
   CDIlaunchtemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateData:
-        ImageId: !Ref LatestAmiId
+        ImageId: LatestAmiId
         InstanceType:
           Ref: InstanceType
         KeyName:
           Ref: KeyName
         NetworkInterfaces:
-          - AssociatePublicIpAddress: true
-            DeviceIndex: 0
-            Groups:
-              - Fn::GetAtt:
-                  - SGsMyCfnSecurityGroupA0E5FF69
-                  - GroupId
-            InterfaceType: efa
-            SubnetId:
-              Fn::GetAtt:
-                - SubnetId1
-                - SubnetId
+        - AssociatePublicIpAddress: true
+          DeviceIndex: 0
+          Groups:
+          - ListOfSecurityGroupIDs
+          InterfaceType: efa
+          SubnetId: Ref SubnetId
         TagSpecifications:
-          - ResourceType: instance
-            Tags:
-              - Key: Name
-                Value: sbx-cdi
+        - ResourceType: instance
+          Tags:
+          - Key: Name
+            Value: sbx-cdi
         UserData:
           Fn::Base64: |
             #!/usr/bin/env bash
             /opt/sbx/InstallSbxCDI/sanity_check
             PATH=/opt/amazon/efa/bin:$PATH /opt/sbx/InstallSbxCDI/aws-efa-installer/efa_test.sh
-      LaunchTemplateName: sbx-cdi
+      LaunchTemplateName: sbx-cdi-1
