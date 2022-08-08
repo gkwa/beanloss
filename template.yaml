@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: AWS CloudFormation workshop - Resources (uksb-1q9p31idr).
+Description: Streambox CDI
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
@@ -10,12 +10,10 @@ Metadata:
     ParameterLabels:
       InstanceType:
         default: Type of EC2 Instance
-
 Mappings:
   RegionMap:
     us-east-1:
       ami: ami-0bb4d49541b2e75d4
-
 Parameters:
   VpcId:
     Type: AWS::EC2::VPC::Id
@@ -27,30 +25,26 @@ Parameters:
   ListOfSecurityGroupIDs:
     Description: Array of security group ids
     Type: List<AWS::EC2::SecurityGroup::Id>
-  RoleArnValue:
-    Type: String
   KeyName:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instances
     Type: AWS::EC2::KeyPair::KeyName
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
-
   InstanceType:
-    Description: Enter t2.micro or t2.small. Default is t2.micro.
+    Description: Enter c5n.9xlarge. Default is c5n.9xlarge.
     Type: String
     AllowedValues:
     - c5n.9xlarge
     - t2.micro
     Default: c5n.9xlarge
-
 Resources:
   CDIlaunchtemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateData:
         ImageId: !FindInMap
-          - RegionMap
-          - !Ref 'AWS::Region'
-          - ami
+        - RegionMap
+        - !Ref AWS::Region
+        - ami
         InstanceType:
           Ref: InstanceType
         KeyName:
