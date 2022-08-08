@@ -31,11 +31,6 @@ Parameters:
     Description: SubnetId of your existing VPC Subnet
     ConstraintDescription: must be the Subet Id of an existing Virtual Private Cloud Subnet.
 
-  CDIcdiInstanceProfile:
-    Type: AWS::IAM::InstanceProfile
-    Description: Name of your existing IAM Instance Profile.
-    ConstraintDescription: must be the name of an existing Instance Profile.
-
   LatestAmiId:
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
     Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
@@ -55,11 +50,6 @@ Resources:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateData:
-        IamInstanceProfile:
-          Arn:
-            Fn::GetAtt:
-              - CDIcdiInstanceProfile
-              - Arn
         ImageId: !Ref LatestAmiId
         InstanceType:
           Ref: InstanceType
