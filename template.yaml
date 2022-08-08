@@ -13,7 +13,18 @@ Metadata:
       InstanceType:
         default: Type of EC2 Instance
 
+Resources:
+ Instance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: !Ref LatestAmiId
+
 Parameters:
+
+  LatestAmiId:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+
   InstanceType:
     Description: Enter t2.micro or t2.small. Default is t2.micro.
     Type: String
@@ -26,5 +37,5 @@ Resources:
   WebServerInstance:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: ami-00a1270ce1e007c27 # This ImageId will only work in the London region
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref InstanceType
