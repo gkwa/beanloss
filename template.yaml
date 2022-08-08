@@ -27,22 +27,22 @@ Parameters:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instances
     Type: AWS::EC2::KeyPair::KeyName
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
-  LatestAmiId:
-    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
-    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+  AmiId:
+    Type: AWS::EC2::Image::Id
+    Default: ami-03f12353af1ad187a
   InstanceType:
     Description: Enter t2.micro or t2.small. Default is t2.micro.
     Type: String
     AllowedValues:
+    - c5n.9xlarge
     - t2.micro
-    - t2.small
-    Default: t2.micro
+    Default: c5n.9xlarge
 Resources:
   CDIlaunchtemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateData:
-        ImageId: LatestAmiId
+        ImageId: !Ref AmiId
         InstanceType:
           Ref: InstanceType
         KeyName:
@@ -50,10 +50,9 @@ Resources:
         NetworkInterfaces:
         - AssociatePublicIpAddress: true
           DeviceIndex: 0
-          Groups:
-          - ListOfSecurityGroupIDs
+          Groups: !Ref ListOfSecurityGroupIDs
           InterfaceType: efa
-          SubnetId: Ref SubnetId
+          SubnetId: !Ref SubnetId
         TagSpecifications:
         - ResourceType: instance
           Tags:
