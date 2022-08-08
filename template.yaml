@@ -21,6 +21,21 @@ Resources:
 
 Parameters:
 
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VpcId of your existing Virtual Private Cloud (VPC)
+    ConstraintDescription: must be the VPC Id of an existing Virtual Private Cloud.
+
+  SubnetId1:
+    Type: AWS::EC2::Subnet
+    Description: SubnetId of your existing VPC Subnet
+    ConstraintDescription: must be the Subet Id of an existing Virtual Private Cloud Subnet.
+
+  CDIcdiInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Description: Name of your existing IAM Instance Profile.
+    ConstraintDescription: must be the name of an existing Instance Profile.
+
   LatestAmiId:
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
     Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
@@ -33,9 +48,43 @@ Parameters:
       - t2.small
     Default: t2.micro
 
+
 Resources:
-  WebServerInstance:
-    Type: AWS::EC2::Instance
+
+  CDIlaunchtemplate:
+    Type: AWS::EC2::LaunchTemplate
     Properties:
-      ImageId: !Ref LatestAmiId
-      InstanceType: !Ref InstanceType
+      LaunchTemplateData:
+        IamInstanceProfile:
+          Arn:
+            Fn::GetAtt:
+              - CDIcdiInstanceProfile
+              - Arn
+        ImageId: !Ref LatestAmiId
+        InstanceType:
+          Ref: InstanceType
+        KeyName:
+          Ref: KeyName
+        NetworkInterfaces:
+          - AssociatePublicIpAddress: true
+            DeviceIndex: 0
+            Groups:
+              - Fn::GetAtt:
+                  - SGsMyCfnSecurityGroupA0E5FF69
+                  - GroupId
+            InterfaceType: efa
+            SubnetId:
+              Fn::GetAtt:
+                - SubnetId1
+                - SubnetId
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: sbx-cdi
+        UserData:
+          Fn::Base64: |
+            #!/usr/bin/env bash
+            /opt/sbx/InstallSbxCDI/sanity_check
+            PATH=/opt/amazon/efa/bin:$PATH /opt/sbx/InstallSbxCDI/aws-efa-installer/efa_test.sh
+      LaunchTemplateName: sbx-cdi
